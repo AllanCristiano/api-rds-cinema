@@ -26,6 +26,7 @@ Acesse a documentação da API em http://localhost:8000/docs para ver todas as r
 ## Tecnologias Utilizadas
 - FastAPI: Framework web assíncrono para Python.
 - PostgreSQL: Sistema de gerenciamento de banco de dados relacional.
+- AWS RDS: Serviço de banco de dados relacional da Amazon Web Services.
 
 ## Contribuição
 Contribuições são bem-vindas! Se você tiver sugestões, correções de bugs ou melhorias, sinta-se à vontade para abrir uma issue ou enviar um pull request.
