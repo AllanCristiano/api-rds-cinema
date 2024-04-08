@@ -23,6 +23,23 @@ Acesse a documentação da API em http://localhost:8000/docs para ver todas as r
 - PUT /promocoes/{promocao_id}: Atualiza os detalhes de uma promoção existente.
 - DELETE /promocoes/{promocao_id}: Deleta uma promoção.
 
+### Avaliações
+- POST /avaliacoes/: Cria uma nova avaliação. Os campos necessários são `id_cliente`, `id_filme`, `nota(1 a 5)`, `comentario`, e `data_avaliacao`
+- GET /avaliacoes/: Retorna todas as avaliações.
+- GET /avaliacoes/{avaliacao_id}: Retorna os detalhes de uma avaliação específica.
+- PUT /avaliacoes/{avaliacao_id}: Atualiza os detalhes de uma avaliação existente. Os campos necessários são `id_cliente`, `id_filme`, `nota(1 a 5)`, `comentario`, e `data_avaliacao`.
+
+
+### Clientes_Promoções
+- POST /clientes_promocoes/: Cria uma nova participação de um cliente em uma promoção. Os campos necessários são `id_cliente` e `id_promocao`.
+- GET /clientes_promocoes/: Retorna todas as participações de clientes em promoções.
+- GET /clientes_promocoes/{cliente_id}/{promocao_id}: Retorna os detalhes de uma participação específica de um cliente em uma promoção.
+- PUT /clientes_promocoes/{cliente_id}/{promocao_id}: Atualiza os detalhes de uma participação de um cliente em uma promoção. Os campos necessários são `id_cliente` e `id_promocao`.
+- DELETE /clientes_promocoes/{cliente_id}/{promocao_id}: Deleta a participação de um cliente em uma promoção.
+
+
+
+
 ## Tecnologias Utilizadas
 - FastAPI: Framework web assíncrono para Python.
 - PostgreSQL: Sistema de gerenciamento de banco de dados relacional.

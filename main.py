@@ -240,6 +240,7 @@ def read_clientes_promocoes():
         cur.execute(query)
         return [{"id_cliente": row[0], "id_promocao": row[1]} for row in cur.fetchall()]
 
+
 @app.get("/clientes_promocoes/{cliente_id}/{promocao_id}")
 def read_cliente_promocao(cliente_id: int, promocao_id: int):
     query = sql.SQL("SELECT * FROM cinema.clientes_promocoes WHERE id_cliente = %s AND id_promocao = %s")
