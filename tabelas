@@ -1,0 +1,98 @@
+-- Criando o esquema cinema
+CREATE SCHEMA cinema;
+
+-- Tabela de Clientes
+CREATE TABLE cinema.clientes (
+    id_cliente SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    telefone VARCHAR(20),
+    saldo NUMERIC(10, 2) DEFAULT 0.00
+);
+
+-- Tabela de Filmes
+CREATE TABLE cinema.filmes (
+    id_filme SERIAL PRIMARY KEY,
+    titulo VARCHAR(100) NOT NULL,
+    diretor VARCHAR(50),
+    ano_lancamento INT
+);
+
+-- Tabela de Salas
+CREATE TABLE cinema.salas (
+    id_sala SERIAL PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL,
+    capacidade INT NOT NULL
+);
+
+-- Tabela de Sessões
+CREATE TABLE cinema.sessoes (
+    id_sessao SERIAL PRIMARY KEY,
+    id_filme INT REFERENCES cinema.filmes(id_filme),
+    id_sala INT REFERENCES cinema.salas(id_sala),
+    data_hora TIMESTAMP NOT NULL
+);
+
+-- Tabela de Cadeiras
+CREATE TABLE cinema.cadeiras (
+    id_cadeira SERIAL PRIMARY KEY,
+    id_sala INT REFERENCES cinema.salas(id_sala),
+    numero INT NOT NULL,
+    disponivel BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- Tabela de Vendas de Ingressos
+CREATE TABLE cinema.vendas_ingressos (
+    id_venda SERIAL PRIMARY KEY,
+    id_cliente INT REFERENCES cinema.clientes(id_cliente),
+    id_sessao INT REFERENCES cinema.sessoes(id_sessao),
+    id_cadeira INT REFERENCES cinema.cadeiras(id_cadeira),
+    valor DECIMAL(10, 2) NOT NULL,
+    data_venda DATE NOT NULL
+);
+
+-- Tabela de Avaliações
+CREATE TABLE cinema.avaliacoes (
+    id_avaliacao SERIAL PRIMARY KEY,
+    id_cliente INT REFERENCES cinema.clientes(id_cliente),
+    id_filme INT REFERENCES cinema.filmes(id_filme),
+    nota INT NOT NULL CHECK (nota >= 1 AND nota <= 5),
+    comentario TEXT,
+    data_avaliacao DATE NOT NULL DEFAULT CURRENT_DATE
+);
+
+-- Tabela de Funcionários
+CREATE TABLE cinema.funcionarios (
+    id_funcionario SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cargo VARCHAR(100) NOT NULL,
+    salario DECIMAL(10, 2) NOT NULL
+);
+
+-- Tabela de Categorias de Filmes
+CREATE TABLE cinema.categorias_filmes (
+    id_categoria SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL
+);
+
+-- Tabela de Relação entre Filmes e Categorias
+CREATE TABLE cinema.filmes_categorias (
+    id_filme INT REFERENCES cinema.filmes(id_filme),
+    id_categoria INT REFERENCES cinema.categorias_filmes(id_categoria),
+    PRIMARY KEY (id_filme, id_categoria)
+);
+
+-- Tabela de Promoções
+CREATE TABLE cinema.promocoes (
+    id_promocao SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    desconto DECIMAL(5, 2) NOT NULL
+);
+
+-- Tabela de Relação entre Clientes e Promoções
+CREATE TABLE cinema.clientes_promocoes (
+    id_cliente INT REFERENCES cinema.clientes(id_cliente),
+    id_promocao INT REFERENCES cinema.promocoes(id_promocao),
+    PRIMARY KEY (id_cliente, id_promocao)
+);

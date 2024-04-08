@@ -4,7 +4,7 @@ from typing import List, Optional
 import psycopg2
 from psycopg2 import sql
 
-
+## comando rodar uvicode uvicorn main:app --reload --port 8080
 # Definindo modelos Pydantic para as tabelas
 class Cliente(BaseModel):
     nome: str
