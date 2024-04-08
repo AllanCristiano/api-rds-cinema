@@ -7,7 +7,7 @@ CREATE TABLE cinema.clientes (
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     telefone VARCHAR(20),
-    saldo NUMERIC(10, 2) DEFAULT 0.00
+  	saldo DECIMAL(10, 2) DEFAULT 0.00
 );
 
 -- Tabela de Filmes
@@ -96,3 +96,70 @@ CREATE TABLE cinema.clientes_promocoes (
     id_promocao INT REFERENCES cinema.promocoes(id_promocao),
     PRIMARY KEY (id_cliente, id_promocao)
 );
+
+-- Inserindo dados de exemplo nas tabelas existentes
+
+-- Inserindo dados de exemplo na tabela de clientes
+INSERT INTO cinema.clientes (nome, email, telefone, saldo)
+VALUES
+    ('Maria Silva', 'maria@example.com', '(11) 98765-4321', 0),
+    ('João Souza', 'joao@example.com', '(11) 12345-6789', 50),
+    ('Pedro Oliveira', 'pedro@example.com', '(11) 54321-9876', 100);
+
+-- Inserindo dados de exemplo na tabela de filmes
+INSERT INTO cinema.filmes (titulo, diretor, ano_lancamento)
+VALUES
+    ('Matrix', 'The Wachowskis', 1999),
+    ('Pulp Fiction', 'Quentin Tarantino', 1994),
+    ('Forrest Gump', 'Robert Zemeckis', 1994);
+
+-- Inserindo dados de exemplo na tabela de salas
+INSERT INTO cinema.salas (nome, capacidade)
+VALUES
+    ('Sala 1', 100),
+    ('Sala 2', 80),
+    ('Sala 3', 120);
+
+-- Inserindo dados de exemplo na tabela de sessões
+INSERT INTO cinema.sessoes (id_filme, id_sala, data_hora)
+VALUES
+    (1, 1, '2024-04-06 18:00:00'),
+    (2, 2, '2024-04-06 20:00:00'),
+    (3, 3, '2024-04-07 14:00:00');
+
+-- Inserindo dados de exemplo na tabela de cadeiras
+INSERT INTO cinema.cadeiras (id_sala, numero, disponivel)
+SELECT id_sala, generate_series(1, capacidade), TRUE
+FROM cinema.salas;
+
+-- Inserindo dados de exemplo na tabela de vendas de ingressos
+INSERT INTO cinema.vendas_ingressos (id_cliente, id_sessao, id_cadeira, valor, data_venda)
+VALUES
+    (1, 1, 1, 20.00, '2024-04-06'),
+    (2, 2, 30, 25.00, '2024-04-06'),
+    (3, 3, 50, 30.00, '2024-04-07');
+
+-- Inserindo dados de exemplo na tabela de avaliações
+INSERT INTO cinema.avaliacoes (id_cliente, id_filme, nota, comentario, data_avaliacao)
+VALUES
+    (1, 1, 5, 'Ótimo filme!', '2024-04-06'),
+    (2, 2, 4, 'Muito interessante.', '2024-04-06'),
+    (3, 3, 3, 'Bom filme, mas poderia ser melhor.', '2024-04-07');
+
+-- Inserindo dados de exemplo na tabela de promoções
+INSERT INTO cinema.promocoes (nome, descricao, desconto)
+VALUES
+    ('Promoção de Verão', 'Desconto especial para filmes de verão!', 10.00),
+    ('Desconto em Filmes Clássicos', 'Desconto exclusivo para filmes clássicos!', 5.00),
+    ('Combo Pipoca e Refrigerante', 'Ganhe um desconto ao comprar o combo pipoca e refrigerante!', 3.00);
+
+-- Inserindo dados de exemplo na tabela de clientes_promocoes
+INSERT INTO cinema.clientes_promocoes (id_cliente, id_promocao)
+VALUES
+    (1, 1), -- Maria Silva participando da Promoção de Verão
+    (2, 2), -- João Souza participando do Desconto em Filmes Clássicos
+    (3, 1), -- Pedro Oliveira participando da Promoção de Verão
+    (1, 3), -- Maria Silva participando do Combo Pipoca e Refrigerante
+    (2, 3); -- João Souza participando do Combo Pipoca e Refrigerante
+
+
