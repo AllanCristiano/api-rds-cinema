@@ -42,6 +42,14 @@ class ClientePromocao(BaseModel):
     id_promocao: int
 
 
+class IngressoVendido(BaseModel):
+    id_cliente: int
+    id_sessao: int
+    id_cadeira: int
+    valor: float
+    data_venda: date
+
+
 # Configuração do banco de dados
 DATABASE = {
     'dbname': 'tabelas_cinema_1',
@@ -271,3 +279,67 @@ def delete_cliente_promocao(cliente_id: int, promocao_id: int):
         cur.execute(query, (cliente_id, promocao_id))
         conn.commit()
         return {"message": f"Participação do cliente na promoção deletada com sucesso"}
+
+
+# Rotas CRUD para a tabela de vendas_ingressos
+@app.post("/vendas_ingressos/")
+def vender_ingresso(ingresso: IngressoVendido):
+    # Verifique se o cliente existe
+    query_cliente = sql.SQL("SELECT id_cliente FROM cinema.clientes WHERE id_cliente = %s")
+    with connect_to_db() as conn, conn.cursor() as cur:
+        cur.execute(query_cliente, (ingresso.id_cliente,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Cliente não encontrado")
+
+    # Verifique se a sessão existe
+    query_sessao = sql.SQL("SELECT id_sessao FROM cinema.sessoes WHERE id_sessao = %s")
+    with connect_to_db() as conn, conn.cursor() as cur:
+        cur.execute(query_sessao, (ingresso.id_sessao,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Sessão não encontrada")
+
+    # Verifique se a cadeira está disponível
+    query_cadeira = sql.SQL("SELECT disponivel FROM cinema.cadeiras WHERE id_cadeira = %s")
+    with connect_to_db() as conn, conn.cursor() as cur:
+        cur.execute(query_cadeira, (ingresso.id_cadeira,))
+        cadeira_disponivel = cur.fetchone()
+        if not cadeira_disponivel or not cadeira_disponivel[0]:
+            raise HTTPException(status_code=400, detail="Cadeira não disponível")
+
+    # Registre a venda de ingresso
+    query_venda = sql.SQL("INSERT INTO cinema.vendas_ingressos (id_cliente, id_sessao, id_cadeira, valor, data_venda) "
+                          "VALUES (%s, %s, %s, %s, %s)")
+    data_venda = (ingresso.id_cliente, ingresso.id_sessao, ingresso.id_cadeira, ingresso.valor, ingresso.data_venda)
+    with connect_to_db() as conn, conn.cursor() as cur:
+        cur.execute(query_venda, data_venda)
+        conn.commit()
+
+    # Marque a cadeira como indisponível
+    query_update_cadeira = sql.SQL("UPDATE cinema.cadeiras SET disponivel = FALSE WHERE id_cadeira = %s")
+    with connect_to_db() as conn, conn.cursor() as cur:
+        cur.execute(query_update_cadeira, (ingresso.id_cadeira,))
+        conn.commit()
+
+    return {"message": "Ingresso vendido com sucesso"}
+
+
+@app.get("/vendas_ingressos/")
+def listar_ingressos_vendidos():
+    query = sql.SQL("SELECT * FROM cinema.vendas_ingressos")
+    with connect_to_db() as conn, conn.cursor() as cur:
+        cur.execute(query)
+        return [{"id_venda": row[0], "id_cliente": row[1], "id_sessao": row[2], "id_cadeira": row[3], "valor": row[4],
+                 "data_venda": row[5]} for row in cur.fetchall()]
+
+
+@app.get("/vendas_ingressos/cliente/{cliente_id}")
+def buscar_ingresso_por_cliente(cliente_id: int):
+    query = sql.SQL("SELECT * FROM cinema.vendas_ingressos WHERE id_cliente = %s")
+    with connect_to_db() as conn, conn.cursor() as cur:
+        cur.execute(query, (cliente_id,))
+        ingressos = [
+            {"id_venda": row[0], "id_cliente": row[1], "id_sessao": row[2], "id_cadeira": row[3], "valor": row[4],
+             "data_venda": row[5]} for row in cur.fetchall()]
+        if not ingressos:
+            raise HTTPException(status_code=404, detail="Nenhum ingresso encontrado para este cliente")
+        return ingressos
