@@ -284,21 +284,23 @@ def delete_cliente_promocao(cliente_id: int, promocao_id: int):
 # Rotas CRUD para a tabela de vendas_ingressos
 @app.post("/vendas_ingressos/")
 def vender_ingresso(ingresso: IngressoVendido):
-    # Verifique se o cliente existe
+    # Verificar se o cliente existe
     query_cliente = sql.SQL("SELECT id_cliente FROM cinema.clientes WHERE id_cliente = %s")
     with connect_to_db() as conn, conn.cursor() as cur:
         cur.execute(query_cliente, (ingresso.id_cliente,))
-        if not cur.fetchone():
+        cliente = cur.fetchone()
+        if not cliente:
             raise HTTPException(status_code=404, detail="Cliente não encontrado")
 
-    # Verifique se a sessão existe
+    # Verificar se a sessão existe
     query_sessao = sql.SQL("SELECT id_sessao FROM cinema.sessoes WHERE id_sessao = %s")
     with connect_to_db() as conn, conn.cursor() as cur:
         cur.execute(query_sessao, (ingresso.id_sessao,))
-        if not cur.fetchone():
+        sessao = cur.fetchone()
+        if not sessao:
             raise HTTPException(status_code=404, detail="Sessão não encontrada")
 
-    # Verifique se a cadeira está disponível
+    # Verificar se a cadeira está disponível
     query_cadeira = sql.SQL("SELECT disponivel FROM cinema.cadeiras WHERE id_cadeira = %s")
     with connect_to_db() as conn, conn.cursor() as cur:
         cur.execute(query_cadeira, (ingresso.id_cadeira,))
@@ -306,10 +308,25 @@ def vender_ingresso(ingresso: IngressoVendido):
         if not cadeira_disponivel or not cadeira_disponivel[0]:
             raise HTTPException(status_code=400, detail="Cadeira não disponível")
 
+    # Obter o valor do ingresso
+    valor_ingresso = ingresso.valor
+
+    # Verificar se o cliente possui alguma promoção ativa
+    query_promocao_cliente = sql.SQL("SELECT desconto FROM cinema.promocoes AS p "
+                                     "INNER JOIN cinema.clientes_promocoes AS cp ON p.id_promocao = cp.id_promocao "
+                                     "WHERE cp.id_cliente = %s")
+    with connect_to_db() as conn, conn.cursor() as cur:
+        cur.execute(query_promocao_cliente, (ingresso.id_cliente,))
+        desconto_promocao = cur.fetchone()
+        if desconto_promocao:
+            # Converter o valor do desconto para float antes de aplicar ao valor do ingresso
+            desconto_float = float(desconto_promocao[0])
+            valor_ingresso = valor_ingresso * (1 - desconto_float / 100)
+
     # Registre a venda de ingresso
     query_venda = sql.SQL("INSERT INTO cinema.vendas_ingressos (id_cliente, id_sessao, id_cadeira, valor, data_venda) "
                           "VALUES (%s, %s, %s, %s, %s)")
-    data_venda = (ingresso.id_cliente, ingresso.id_sessao, ingresso.id_cadeira, ingresso.valor, ingresso.data_venda)
+    data_venda = (ingresso.id_cliente, ingresso.id_sessao, ingresso.id_cadeira, valor_ingresso, ingresso.data_venda)
     with connect_to_db() as conn, conn.cursor() as cur:
         cur.execute(query_venda, data_venda)
         conn.commit()
