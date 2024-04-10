@@ -53,8 +53,8 @@ class IngressoVendido(BaseModel):
 # Configuração do banco de dados
 DATABASE = {
     'dbname': 'tabelas_cinema_1',
-    'user': 'aluno',
-    'password': 'aluno123',
+    'user': 'professor',
+    'password': 'professor',
     'host': 'db-rds-cinema.c6ieh0ptqnno.us-east-1.rds.amazonaws.com'
 }
 
