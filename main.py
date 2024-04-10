@@ -44,7 +44,7 @@ class ClientePromocao(BaseModel):
 
 # Configuração do banco de dados
 DATABASE = {
-    'dbname': 'tabelas_cinema',
+    'dbname': 'tabelas_cinema_1',
     'user': 'aluno',
     'password': 'aluno123',
     'host': 'db-rds-cinema.c6ieh0ptqnno.us-east-1.rds.amazonaws.com'

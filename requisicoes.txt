@@ -89,12 +89,20 @@ WHERE EXISTS (
     )
 );
 
--- 12º Quantos clientes fizeram avaliações de filmes com notas maiores do que a média das avaliações
-SELECT COUNT(DISTINCT id_cliente) AS clientes_com_avaliacoes_acima_da_media
-FROM cinema.avaliacoes
-WHERE nota > (
-    SELECT AVG(nota) FROM cinema.avaliacoes
-);
+-- 12º quais os clientes tem compra de ingresso de no minimo 25 reais
+SELECT
+    nome
+FROM
+    cinema.clientes
+WHERE
+    id_cliente = SOME (
+        SELECT
+            id_cliente
+        FROM
+            cinema.vendas_ingressos
+        WHERE
+            valor > 24.99
+    );
 
 -- 13º Quais filmes receberam avaliações com notas maiores do que todas as avaliações de outros filmes
 SELECT f.titulo
