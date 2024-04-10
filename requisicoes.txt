@@ -1,0 +1,127 @@
+-- 1º todos os clientes com saldo maior que 0.
+SELECT * FROM cinema.clientes WHERE saldo > 0;
+
+-- 2º encontrar todos os clientes cujos endereços de e-mail contenham '@gmail.com'
+SELECT * FROM cinema.clientes WHERE email LIKE '%@gmail.com';
+
+-- 3º listar todos os clientes que fizeram uma compra nos últimos 7 dias e todos os clientes que deixaram uma avaliação nos últimos 7 dias
+-- Selecionando clientes que fizeram uma compra nos últimos 7 dias
+SELECT id_cliente, nome, email
+FROM cinema.clientes
+WHERE id_cliente IN (
+    SELECT id_cliente
+    FROM cinema.vendas_ingressos
+    WHERE data_venda >= CURRENT_DATE - INTERVAL '7 days'
+)
+UNION
+-- Selecionando clientes que deixaram uma avaliação nos últimos 7 dias
+SELECT id_cliente, nome, email
+FROM cinema.clientes
+WHERE id_cliente IN (
+    SELECT id_cliente
+    FROM cinema.avaliacoes
+    WHERE data_avaliacao >= CURRENT_DATE - INTERVAL '7 days'
+);
+
+-- 4º listar os filmes que foram avaliados pelos clientes, juntamente com as avaliações e os nomes dos clientes que as fizeram
+SELECT c.nome AS nome_cliente, f.titulo AS titulo_filme, a.nota, a.comentario
+FROM cinema.avaliacoes a
+INNER JOIN cinema.clientes c ON a.id_cliente = c.id_cliente
+INNER JOIN cinema.filmes f ON a.id_filme = f.id_filme;
+
+
+-- 5º  lista dos filmes assistidos pelos clientes, juntamente com os nomes dos clientes que os assistiram
+SELECT c.nome AS nome_cliente, f.titulo AS titulo_filme
+FROM cinema.clientes c
+JOIN cinema.vendas_ingressos vi ON c.id_cliente = vi.id_cliente
+JOIN cinema.sessoes s ON vi.id_sessao = s.id_sessao
+JOIN cinema.filmes f ON s.id_filme = f.id_filme;
+
+-- 6º obter uma lista de todos os clientes, juntamente com os filmes que eles avaliaram, mesmo que alguns clientes não tenham feito nenhuma avaliação
+SELECT c.nome AS nome_cliente, f.titulo AS titulo_filme, a.nota, a.comentario
+FROM cinema.clientes c
+LEFT OUTER JOIN cinema.avaliacoes a ON c.id_cliente = a.id_cliente
+LEFT OUTER JOIN cinema.filmes f ON a.id_filme = f.id_filme;
+
+-- 7º Quantos ingressos foram vendidos para cada filme
+SELECT f.titulo AS titulo_filme, COUNT(vi.id_venda) AS total_ingressos_vendidos
+FROM cinema.filmes f
+JOIN cinema.sessoes s ON f.id_filme = s.id_filme
+JOIN cinema.vendas_ingressos vi ON s.id_sessao = vi.id_sessao
+GROUP BY f.titulo;
+
+-- 8º Quantas sessões de filmes foram realizadas em cada sala
+SELECT s.id_sala, COUNT(s.id_sessao) AS total_sessoes
+FROM cinema.sessoes s
+GROUP BY s.id_sala;
+
+-- 9º clientes que fizeram pelo menos uma avaliação
+SELECT c.id_cliente, c.nome, COUNT(a.id_avaliacao) AS total_avaliacoes
+FROM cinema.clientes c
+JOIN cinema.avaliacoes a ON c.id_cliente = a.id_cliente
+GROUP BY c.id_cliente, c.nome
+HAVING COUNT(a.id_avaliacao) > 0;
+
+
+-- 10º clientes que compraram ingressos para sessões realizadas na sala 1
+SELECT DISTINCT c.id_cliente, c.nome
+FROM cinema.clientes c
+JOIN cinema.vendas_ingressos vi ON c.id_cliente = vi.id_cliente
+JOIN cinema.sessoes s ON vi.id_sessao = s.id_sessao
+WHERE s.id_sala IN (
+    SELECT id_sala
+    FROM cinema.salas
+    WHERE nome = 'Sala 1'
+);
+
+-- 11º algum cliente que comprou ingressos para sessões realizadas na sala 2
+SELECT id_cliente, nome
+FROM cinema.clientes c
+WHERE EXISTS (
+    SELECT 1
+    FROM cinema.vendas_ingressos vi
+    JOIN cinema.sessoes s ON vi.id_sessao = s.id_sessao
+    WHERE vi.id_cliente = c.id_cliente
+    AND s.id_sala = (
+        SELECT id_sala
+        FROM cinema.salas
+        WHERE nome = 'Sala 2'
+    )
+);
+
+-- 12º Quantos clientes fizeram avaliações de filmes com notas maiores do que a média das avaliações
+SELECT COUNT(DISTINCT id_cliente) AS clientes_com_avaliacoes_acima_da_media
+FROM cinema.avaliacoes
+WHERE nota > (
+    SELECT AVG(nota) FROM cinema.avaliacoes
+);
+
+-- 13º Quais filmes receberam avaliações com notas maiores do que todas as avaliações de outros filmes
+SELECT f.titulo
+FROM cinema.filmes f
+WHERE (
+    SELECT MAX(a.nota)
+    FROM cinema.avaliacoes a
+    WHERE a.id_filme <> f.id_filme
+) < ALL (
+    SELECT a.nota
+    FROM cinema.avaliacoes a
+    WHERE a.id_filme = f.id_filme
+);
+
+-- 14º Quais são os clientes que compraram ingressos para sessões de filmes dirigidos por Quentin Tarantino
+SELECT DISTINCT c.nome
+FROM cinema.clientes c
+JOIN cinema.vendas_ingressos vi ON c.id_cliente = vi.id_cliente
+JOIN cinema.sessoes s ON vi.id_sessao = s.id_sessao
+JOIN cinema.filmes f ON s.id_filme = f.id_filme
+WHERE f.diretor = 'Quentin Tarantino';
+
+
+
+
+
+
+
+
+
